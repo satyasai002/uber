@@ -1,0 +1,182 @@
+import React from "react";
+import { useRef, useState, Component } from "react";
+
+import {
+  GoogleMap,
+  useLoadScript,
+  Marker,
+  Autocomplete,
+  StandaloneSearchBox,
+  InfoWindow,
+  Locate,
+} from "@react-google-maps/api";
+import Geocode from "react-geocode";
+import axios from "axios";
+const mapContainerStyle = {
+  width: "72vw",
+  height: "100vh",
+};
+
+const options = {
+  disableDefaultUI: true,
+  zoomControl: true,
+};
+const libraries = [`places`];
+
+function Newride() {
+  const [center, setCenter] = useState({
+    lat: 55,
+    lng: 9.5357,
+  });
+  const [data, setData] = useState({
+    Passengers: "",
+    From: "",
+    To: "",
+    PickUpDate: "",
+    PickUpTime: "",
+  });
+  const changeHandler = (e) => {
+    setData({ ...data, [e.target.name]: e.target.value });
+  };
+
+  const submitHandler = (e) => {
+    e.preventDefault();
+    axios.post("http://localhost:5000/newride", data).then((res) => {
+      alert(res.data);
+      setData({
+        Passengers: "",
+        From: "",
+        To: "",
+        PickUpDate: "",
+        PickUpTime: "",
+      });
+    });
+  };
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries,
+  });
+  const [markers, setMarkers] = React.useState([]);
+
+  const mapRef = React.useRef();
+  const onMapLoad = React.useCallback((map) => {
+    mapRef.current = map;
+  }, []);
+
+  const panTo = React.useCallback(({ lat, lng }) => {
+    mapRef.current.panTo({ lat, lng });
+    mapRef.current.setZoom(14);
+  }, []);
+
+  const originRef = useRef();
+  const destiantionRef = useRef();
+  function markerDrop(event) {
+    //get values of marker
+    let lat = event.latLng.lat();
+    let lng = event.latLng.lng();
+    //insert values to forms
+    document.getElementById("location_latitude").value = lat;
+    document.getElementById("location_longitude").value = lng;
+    return;
+  }
+  const onPlaceSelected = (place) => {
+    console.log("plc", place);
+    const latValue = place.geometry.location.lat();
+    const lngValue = place.geometry.location.lng();
+  };
+  if (loadError) return "Error loading maps";
+  if (!isLoaded) return "Loading Maps";
+
+  return (
+    <div className="relative flex justify-left h-100vh w-100vw">
+      <div className="absolute left-0 top-0 h-full w-full">
+        <GoogleMap
+          zoom={13}
+          mapContainerStyle={{ width: "100%", height: "100%" }}
+          center={center}
+          onLoad={onMapLoad}
+          options={options}
+        >
+          {markers.map((marker) => (
+            <Marker
+              draggable={true}
+              key={marker.time.toISOString()}
+              position={{
+                lat: marker.lat,
+                lng: marker.lng,
+              }}
+            />
+          ))}
+        </GoogleMap>
+      </div>
+      <div className="p-8 m-16 flex flex-col bg-white rounded-xl z-10">
+        <form>
+          <div className="flex flex-col justify-center md:items-start p-10 bg-white rounded-xl w-full">
+            <h1 className="py-3 text-2xl md:text-3xl font-semibold hover:cursor-default">
+              Where can we pick you?
+            </h1>
+
+            <div>
+              <div className="pt-4 flex">
+                <img src="./imgs/arrow.svg" alt="" />
+                <div className="px-2">
+                  <input
+                    className="w-80 lg:w-96 inputbox p-4 hover:outline-2 form-control"
+                    type="text"
+                    placeholder="Pickup Location"
+                  />
+                </div>
+                <button className="pt-4 px-2">
+                  <img src="./imgs/gps.svg" alt="" />
+                </button>
+              </div>
+              <div className="pt-2 flex">
+                <img src="./imgs/destination.svg" alt="" />
+                <div className="px-2">
+                  <input
+                    className="w-80 lg:w-96 inputbox p-4 hover:outline-2 form-control"
+                    id="from_places"
+                    type="text"
+                    placeholder="Enter your destination"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 flex px-8">
+              <div className="px-1.5">
+                <input
+                  className="w-70 lg:w-77 inputbox p-4 hover:outline-2 form-control"
+                  id="date"
+                  name="Date"
+                  type="date"
+                  placeholder=""
+                />
+              </div>
+              <div className="px-2">
+                <input
+                  className="w-30 lg:w-30 inputbox p-4 hover:outline-2 form-control"
+                  min="09:00"
+                  type="time"
+                  placeholder=""
+                />
+                <span className="font-bold validity "></span>
+              </div>
+            </div>
+            <div className="pt-4 px-6">
+              <button
+                type="submit"
+                className=" px-3 p-3 w-96  outline ouline-offset-2 outline-1 bg-black text-white hover:text-black hover:bg-white"
+              >
+                Find Cabs
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default Newride;

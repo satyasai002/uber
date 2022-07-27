@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body{
+    padding: 0%;
+    margin: 0%;
+    
+}
+
+.logo{
+    width: 20%;
+    height: auto;
+}
+.bodytag{
+    background-image: url(../public/imgs/Rider_Home_bg_desktop2x.png);
+        background-repeat: no-repeat;
+        background-size: cover;
+    
+}
+.bodytab {
+    background-image: url(../public/imgs/Rider_Home_bg_tablet.png);
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.inputbox{
+    background-color: #f6f6f6;
+}
+
+
+input:valid+span:after {
+    content: '✓';
+    font-size: x-large;
+    padding-left: 10px;
+}
